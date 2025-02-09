@@ -1,19 +1,17 @@
 //-----BIBLIOTECAS-----
 #include <stdio.h>
 #include "pico/stdlib.h"
+#include "pico/time.h"
 #include "hardware/pwm.h"
 
 //-----DIRETIVAS CONSTANTES-----
-#define PINO_LED_VERMELHO 13
-#define PINO_LED_VERDE 11
 #define PINO_LED_AZUL 12
 #define PINO_PWM 22
-#define FREQUENCIA_CLOCK 125000000
 
 //-----VARIÁVEIS GLOBAIS-----
-uint16_t periodo_wrap;
-float divisor_de_clock;
-uint16_t duty_cycle; // Ciclo de trabalho do PWM
+uint16_t periodo_wrap = 20000;
+float divisor_de_clock = 125.0;
+uint16_t duty_cycle = 0; // Ciclo de trabalho do PWM
 uint numero_slice;
 
 //-----PROTÓTIPOS-----
@@ -24,14 +22,23 @@ void inicializacao_dos_pinos(void);
 //-----FUNÇÃO PRINCIPAL-----
 int main(void){
     uint contador_estagio = 1;
+    uint32_t intervalo_ms = 1000;
+    bool servomotor_ativado = false;
+
+    absolute_time_t proximo_evento = delayed_by_us(get_absolute_time(), intervalo_ms * 1000);
+
+    inicializacao_dos_pinos();
+    configuracao_pwm();
 
     while(true){
-        alteracao_parametros(contador_estagio);
-        configuracao_pwm();
-        contador_estagio++;
-        if(contador_estagio == 5)
-            contador_estagio = 1;
-        sleep_ms(1000);
+        if(contador_estagio < 5){
+            if(time_reached(proximo_evento)){
+                alteracao_parametros(contador_estagio);
+                contador_estagio++;
+                proximo_evento = delayed_by_us(proximo_evento, intervalo_ms * 1000);
+            }
+        }
+        //sleep_ms(intervalo_ms);
     }
 
     return 0;
@@ -41,23 +48,19 @@ int main(void){
 void alteracao_parametros(uint estagio){
     switch(estagio){
         case 1: // Estágio 1
-            divisor_de_clock = 200.15;
-            uint divisor_inteiro = (int)divisor_de_clock;
-            uint divisor_frac = (int)(divisor_de_clock - divisor_inteiro) * 100;
-            uint frequencia_pwm = 50;
-            periodo_wrap = FREQUENCIA_CLOCK / ((divisor_inteiro + divisor_frac / 16) * frequencia_pwm) - 1;
-            duty_cycle = periodo_wrap * 50 / 100;
+            duty_cycle = 0;
             break;
         case 2: // Estágio 2
-            duty_cycle = periodo_wrap * 3 / 2500; // 0,12%
+            duty_cycle = periodo_wrap * 3 / 25; // 12,00%
             break;
         case 3: // Estágio 3
-            duty_cycle = periodo_wrap * 735 / 1000000; // 0,0735%
+            duty_cycle = periodo_wrap * 147 / 2000; // 7,35%
             break;
         case 4: // Estágio 4
-            duty_cycle = periodo_wrap / 4000; // 0,025%
+            duty_cycle = periodo_wrap / 40; // 2,50%
             break;
     }
+    pwm_set_gpio_level(numero_slice, duty_cycle);
 }
 
 void configuracao_pwm(void){
@@ -69,14 +72,9 @@ void configuracao_pwm(void){
 }
 
 void inicializacao_dos_pinos(void){
-    gpio_init(PINO_LED_VERMELHO);
-    gpio_set_dir(PINO_LED_VERMELHO, GPIO_OUT);
-
-    gpio_init(PINO_LED_VERDE);
-    gpio_set_dir(PINO_LED_VERDE, GPIO_OUT);
-
     gpio_init(PINO_LED_AZUL);
     gpio_set_dir(PINO_LED_AZUL, GPIO_OUT);
+    gpio_put(PINO_LED_AZUL, false);
 
     gpio_set_function(PINO_PWM, GPIO_FUNC_PWM); // Habilita o pino GPIO como PWM
 }
