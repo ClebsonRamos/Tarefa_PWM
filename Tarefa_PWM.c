@@ -27,6 +27,7 @@ int main(void){
 
     absolute_time_t proximo_evento = delayed_by_us(get_absolute_time(), intervalo_ms * 1000);
 
+    stdio_init_all();
     inicializacao_dos_pinos();
     configuracao_pwm();
 
@@ -60,6 +61,7 @@ void alteracao_parametros(uint estagio){
             duty_cycle = periodo_wrap / 40; // 2,50%
             break;
     }
+    printf("duty cycle: %d\n", duty_cycle);
     pwm_set_gpio_level(numero_slice, duty_cycle);
 }
 
