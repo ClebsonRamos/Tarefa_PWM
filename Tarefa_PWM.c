@@ -1,7 +1,6 @@
 //-----BIBLIOTECAS-----
 #include <stdio.h>
 #include "pico/stdlib.h"
-#include "pico/time.h"
 #include "hardware/pwm.h"
 
 //-----DIRETIVAS CONSTANTES-----
@@ -21,25 +20,21 @@ void inicializacao_dos_pinos(void);
 
 //-----FUNÇÃO PRINCIPAL-----
 int main(void){
-    uint contador_estagio = 1;
-    uint32_t intervalo_ms = 1000;
-    bool servomotor_ativado = false;
-
-    absolute_time_t proximo_evento = delayed_by_us(get_absolute_time(), intervalo_ms * 1000);
+    uint32_t intervalo_ms = 5000;
+    bool estagios_iniciais = true;
 
     stdio_init_all();
     inicializacao_dos_pinos();
     configuracao_pwm();
 
     while(true){
-        if(contador_estagio < 5){
-            if(time_reached(proximo_evento)){
-                alteracao_parametros(contador_estagio);
-                contador_estagio++;
-                proximo_evento = delayed_by_us(proximo_evento, intervalo_ms * 1000);
+        if(estagios_iniciais){
+            for(uint i = 1; i < 4; i++){
+                alteracao_parametros(i);
+                sleep_ms(intervalo_ms);
             }
+            estagios_iniciais = !estagios_iniciais;
         }
-        //sleep_ms(intervalo_ms);
     }
 
     return 0;
@@ -62,7 +57,7 @@ void alteracao_parametros(uint estagio){
             break;
     }
     printf("duty cycle: %d\n", duty_cycle);
-    pwm_set_gpio_level(numero_slice, duty_cycle);
+    pwm_set_gpio_level(PINO_PWM, duty_cycle);
 }
 
 void configuracao_pwm(void){
