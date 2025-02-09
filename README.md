@@ -1,5 +1,6 @@
 TAREFA PWM
 
+
 DESCRIÇÃO
 
 Esse projeto tem como funcionalidade controlar um servomotor para realizar movimentos sincronizados. Foi construída uma simulação através da plataforma Wokwi e importada para o projeto. Quando ativada, a simulação posiciona o braço do servomotor à 180 graus (posição sul). Após 5 segundos, o braço é movido 90 graus no sentido anti-horário (posição leste). Depois de mais 5 segundos, novamente o braço do servomotor é movido 90 graus no sentido anti-horário (posição norte) e aguarda mais 5 segundos.
@@ -13,6 +14,7 @@ COMPONENTES NECESSÁRIOS
   * 1 placa Raspberry Pi Pico W, com um microcontrolador RP2040;
   * 1 servomotor;
   * 1 LED azul.
+
 
 LINK DO VÍDEO DE APRESENTAÇÃO DO PROJETO
 
